@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthScope - Patient Recovery Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --dark-bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --sidebar-bg: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --border-color: #2d3748;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1a2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: var(--text-primary);
+            background: var(--glass-bg);
+            border-left-color: var(--primary-color);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            margin-left: 0.5rem;
+            width: 100%;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            position: relative;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-color);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.emergency { background: rgba(245, 101, 101, 0.2); color: var(--danger-color); }
+        .stat-icon.stable { background: rgba(72, 187, 120, 0.2); color: var(--success-color); }
+        .stat-icon.warning { background: rgba(237, 137, 54, 0.2); color: var(--warning-color); }
+        .stat-icon.total { background: rgba(102, 126, 234, 0.2); color: var(--primary-color); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .stat-change.positive { color: var(--success-color); }
+        .stat-change.negative { color: var(--danger-color); }
+
+        /* Emergency Alerts */
+        .alerts-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alerts-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--danger-color), var(--warning-color));
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-left: auto;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Alert Items */
+        .alert-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--danger-color);
+            animation: alertPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { border-left-color: var(--danger-color); }
+            50% { border-left-color: var(--warning-color); }
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-patient {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .alert-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .alert-vitals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .vital-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .vital-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .vital-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Patient Table */
+        .patients-table {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-select, .filter-input {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: var(--glass-bg);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-emergency {
+            background: rgba(245, 101, 101, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .status-warning {
+            background: rgba(237, 137, 54, 0.2);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .status-stable {
+            background: rgba(72, 187, 120, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .top-bar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-heartbeat"></i>
+            HealthScope
+        </div>
+    </div>
+    <div class="sidebar-menu">
+        <a href="#" class="menu-item active">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-users"></i>
+            Patients
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-exclamation-triangle"></i>
+            Emergencies
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-chart-line"></i>
+            Analytics
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-calendar-alt"></i>
+            Appointments
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-file-medical"></i>
+            Reports
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-cog"></i>
+            Settings
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search patients, alerts..." id="searchInput">
+        </div>
+        <div class="user-actions">
+            <button class="action-btn" id="notificationBtn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </button>
+            <button class="action-btn theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="action-btn">
+                <i class="fas fa-user-md"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <div class="dashboard-header fade-in">
+            <h1 class="dashboard-title">Physician Dashboard</h1>
+            <p class="dashboard-subtitle">Monitor patient vitals and emergency alerts in real-time</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon emergency">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-up"></i>
+                        +2
+                    </div>
+                </div>
+                <div class="stat-value">5</div>
+                <div class="stat-label">Critical Alerts</div>
+                <div class="stat-change negative">Requires immediate attention</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-down"></i>
+                        -1
+                    </div>
+                </div>
+                <div class="stat-value">12</div>
+                <div class="stat-label">Warning Alerts</div>
+                <div class="stat-change positive">Monitoring required</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon stable">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8
+                    </div>
+                </div>
+                <div class="stat-value">147</div>
+                <div class="stat-label">Stable Patients</div>
+                <div class="stat-change positive">Normal vitals</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon total">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +9
+                    </div>
+                </div>
+                <div class="stat-value">164</div>
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-change positive">Under monitoring</div>
+            </div>
+        </div>
+
+        <!-- Emergency Alerts -->
+        <div class="alerts-section fade-in">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Critical Emergency Alerts
+                </h2>
+                <div class="export-buttons">
+                    <button class="export-btn" onclick="exportData('txt')">
+                        <i class="fas fa-file-alt"></i>
+                        Export TXT
+                    </button>
+                    <button class="export-btn" onclick="exportData('pdf')">
+                        <i class="fas fa-file-pdf"></i>
+                        Export PDF
+                    </button>
+                    <button class="export-btn" onclick="exportData('excel')">
+                        <i class="fas fa-file-excel"></i>
+                        Export Excel
+                    </button>
+                </div>
+            </div>
+
+            <div id="alertsList">
+                <div class="alert-item slide-in">
+                    <div class="alert-header">
+                        <span class="alert-patient">John Smith (Room 305)</span>
+                        <span class="alert-time">2 minutes ago</span>
+                    </div>
+                    <div class="alert-vitals">
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">39.8°C</div>
+                            <div class="vital-label">Temperature</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">180/110</div>
+                            <div class="vital-label">Blood Pressure</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value">95</div>
+                            <div class="vital-label">Heart Rate</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">CRITICAL</div>
+                            <div class="vital-label">Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert-item slide-in">
+                    <div class="alert-header">
+                        <span class="alert-patient">Sarah Johnson (Room 201)</span>
+                        <span class="alert-time">5 minutes ago</span>
+                    </div>
+                    <div class="alert-vitals">
+                        <div class="vital-item">
+                            <div class="vital-value">37.2°C</div>
+                            <div class="vital-label">Temperature</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value">120/80</div>
+                            <div class="vital-label">Blood Pressure</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">140</div>
+                            <div class="vital-label">Heart Rate</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--warning-color);">WARNING</div>
+                            <div class="vital-label">Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert-item slide-in">
+                    <div class="alert-header">
+                        <span class="alert-patient">Michael Brown (Room 412)</span>
+                        <span class="alert-time">8 minutes ago</span>
+                    </div>
+                    <div class="alert-vitals">
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">35.1°C</div>
+                            <div class="vital-label">Temperature</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">90/50</div>
+                            <div class="vital-label">Blood Pressure</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">45</div>
+                            <div class="vital-label">Heart Rate</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-value" style="color: var(--danger-color);">CRITICAL</div>
+                            <div class="vital-label">Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patients Table -->
+        <div class="patients-table fade-in">
+            <div class="table-header">
+                <h2 class="section-title">
+                    <i class="fas fa-users"></i>
+                    All Patients
+                </h2>
+                <div class="filter-controls">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="critical">Critical</option>
+                        <option value="warning">Warning</option>
+                        <option value="stable">Stable</option>
+                    </select>
+                    <input type="text" class="filter-input" placeholder="Filter by room..." id="roomFilter">
+                    <button class="export-btn" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table id="patientsTable">
+                    <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Room</th>
+                        <th>Last Update</th>
+                        <th>Temperature</th>
+                        <th>Blood Pressure</th>
+                        <th>Heart Rate</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                    <!-- Table content will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Sample patient data
+    const patients = [
+        {
+            name: "John Smith",
+            room: "305",
+            timestamp: "2024-06-15 14:32",
+            temperature: 39.8,
+            bloodPressure: "180/110",
+            heartRate: 95,
+            status: "critical"
+        },
+        {
+            name: "Sarah Johnson",
+            room: "201",
+            timestamp: "2024-06-15 14:29",
+            temperature: 37.2,
+            bloodPressure: "120/80",
+            heartRate: 140,
+            status: "warning"
+        },
+        {
+            name: "Michael Brown",
+            room: "412",
+            timestamp: "2024-06-15 14:26",
+            temperature: 35.1,
+            bloodPressure: "90/50",
+            heartRate: 45,
+            status: "critical"
+        },
+        {
+            name: "Emily Davis",
+            room: "108",
+            timestamp: "2024-06-15 14:25",
+            temperature: 36.5,
+            bloodPressure: "110/70",
+            heartRate: 72,
+            status: "stable"
+        },
+        {
+            name: "Robert Wilson",
+            room: "523",
+            timestamp: "2024-06-15 14:20",
+            temperature: 37.8,
+            bloodPressure: "140/90",
+            heartRate: 88,
+            status: "warning"
+        },
+        {
+            name: "Lisa Anderson",
+            room: "317",
+            timestamp: "2024-06-15 14:18",
+            temperature: 36.2,
+            bloodPressure: "118/75",
+            heartRate: 68,
+            status: "stable"
+        },
+        {
+            name: "David Martinez",
+            room: "204",
+            timestamp: "2024-06-15 14:15",
+            temperature: 36.8,
+            bloodPressure: "125/82",
+            heartRate: 75,
+            status: "stable"
+        },
+        {
+            name: "Jennifer Taylor",
+            room: "419",
+            timestamp: "2024-06-15 14:12",
+            temperature: 38.5,
+            bloodPressure: "155/95",
+            heartRate: 105,
+            status: "warning"
+        }
+    ];
+
+    // Initialize the dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        populateTable();
+        setupEventListeners();
+        startRealTimeUpdates();
+    });
+
+    // Populate patients table
+    function populateTable(filteredPatients = patients) {
+        const tbody = document.getElementById('patientsTableBody');
+        tbody.innerHTML = '';
+
+        filteredPatients.forEach(patient => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td><strong>${patient.name}</strong></td>
+                    <td>Room ${patient.room}</td>
+                    <td>${formatTimestamp(patient.timestamp)}</td>
+                    <td>${patient.temperature}°C</td>
+                    <td>${patient.bloodPressure}</td>
+                    <td>${patient.heartRate} bpm</td>
+                    <td><span class="status-badge status-${patient.status}">${patient.status.toUpperCase()}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="viewPatient('${patient.name}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" onclick="editPatient('${patient.name}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', handleSearch);
+
+        // Filter functionality
+        const statusFilter = document.getElementById('statusFilter');
+        const roomFilter = document.getElementById('roomFilter');
+        statusFilter.addEventListener('change', handleFilter);
+        roomFilter.addEventListener('input', handleFilter);
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Notification button
+        const notificationBtn = document.getElementById('notificationBtn');
+        notificationBtn.addEventListener('click', showNotifications);
+
+        // Sidebar toggle for mobile
+        const sidebar = document.getElementById('sidebar');
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 1024 && !sidebar.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    }
+
+    // Search functionality
+    function handleSearch() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = patients.filter(patient =>
+            patient.name.toLowerCase().includes(searchTerm) ||
+            patient.room.includes(searchTerm) ||
+            patient.status.toLowerCase().includes(searchTerm)
+        );
+        populateTable(filtered);
+    }
+
+    // Filter functionality
+    function handleFilter() {
+        const statusFilter = document.getElementById('statusFilter').value;
+        const roomFilter = document.getElementById('roomFilter').value.toLowerCase();
+
+        let filtered = patients;
+
+        if (statusFilter) {
+            filtered = filtered.filter(patient => patient.status === statusFilter);
+        }
+
+        if (roomFilter) {
+            filtered = filtered.filter(patient =>
+                patient.room.toLowerCase().includes(roomFilter)
+            );
+        }
+
+        populateTable(filtered);
+    }
+
+    // Export functionality
+    function exportData(format) {
+        const data = patients.map(patient => ({
+            Patient: patient.name,
+            Room: patient.room,
+            Timestamp: patient.timestamp,
+            Temperature: `${patient.temperature}°C`,
+            BloodPressure: patient.bloodPressure,
+            HeartRate: `${patient.heartRate} bpm`,
+            Status: patient.status.toUpperCase()
+        }));
+
+        switch(format) {
+            case 'txt':
+                exportToTxt(data);
+                break;
+            case 'pdf':
+                exportToPdf(data);
+                break;
+            case 'excel':
+                exportToExcel(data);
+                break;
+        }
+    }
+
+    function exportToTxt(data) {
+        let content = 'PATIENT VITALS REPORT\n';
+        content += '='.repeat(50) + '\n';
+        content += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+        data.forEach(patient => {
+            content += `Patient: ${patient.Patient}\n`;
+            content += `Room: ${patient.Room}\n`;
+            content += `Last Update: ${patient.Timestamp}\n`;
+            content += `Temperature: ${patient.Temperature}\n`;
+            content += `Blood Pressure: ${patient.BloodPressure}\n`;
+            content += `Heart Rate: ${patient.HeartRate}\n`;
+            content += `Status: ${patient.Status}\n`;
+            content += '-'.repeat(30) + '\n';
+        });
+
+        downloadFile(content, 'patient-vitals-report.txt', 'text/plain');
+    }
+
+    function exportToPdf(data) {
+        // Simplified PDF export (in a real app, you'd use a PDF library)
+        const content = `
+                <html>
+                    <head>
+                        <title>Patient Vitals Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                            .header { text-align: center; margin-bottom: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Patient Vitals Report</h1>
+                            <p>Generated: ${new Date().toLocaleString()}</p>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Room</th>
+                                    <th>Last Update</th>
+                                    <th>Temperature</th>
+                                    <th>Blood Pressure</th>
+                                    <th>Heart Rate</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(patient => `
+                                    <tr>
+                                        <td>${patient.Patient}</td>
+                                        <td>${patient.Room}</td>
+                                        <td>${patient.Timestamp}</td>
+                                        <td>${patient.Temperature}</td>
+                                        <td>${patient.BloodPressure}</td>
+                                        <td>${patient.HeartRate}</td>
+                                        <td>${patient.Status}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </body>
+                </html>
+            `;
+
+        const blob = new Blob([content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'patient-vitals-report.html';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function exportToExcel(data) {
+        // Convert to CSV format
+        const headers = Object.keys(data[0]).join(',');
+        const rows = data.map(row => Object.values(row).join(',')).join('\n');
+        const csvContent = headers + '\n' + rows;
+
+        downloadFile(csvContent, 'patient-vitals-report.csv', 'text/csv');
+    }
+
+    function downloadFile(content, filename, type) {
+        const blob = new Blob([content], { type: type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Show success message
+        showToast(`${filename} downloaded successfully!`, 'success');
+    }
+
+    // Theme toggle functionality
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        const themeIcon = document.querySelector('#themeToggle i');
+        if (document.body.classList.contains('light-theme')) {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+
+    // Notification functionality
+    function showNotifications() {
+        const notifications = [
+            'New critical alert: John Smith (Room 305)',
+            'Patient vitals updated: Sarah Johnson',
+            'System maintenance scheduled for tonight'
+        ];
+
+        let notificationHtml = '<div style="position: fixed; top: 80px; right: 20px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; max-width: 300px; z-index: 2000; box-shadow: var(--shadow);">';
+        notificationHtml += '<h4 style="margin-bottom: 1rem; color: var(--primary-color);">Notifications</h4>';
+
+        notifications.forEach(notification => {
+            notificationHtml += `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); color: var(--text-primary);">${notification}</div>`;
+        });
+
+        notificationHtml += '<button onclick="this.parentElement.remove()" style="margin-top: 1rem; background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">Close</button>';
+        notificationHtml += '</div>';
+
+        // Remove existing notifications
+        const existing = document.querySelector('.notification-popup');
+        if (existing) existing.remove();
+
+        // Add new notification
+        const div = document.createElement('div');
+        div.className = 'notification-popup';
+        div.innerHTML = notificationHtml;
+        document.body.appendChild(div);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (div.parentElement) div.remove();
+        }, 5000);
+    }
+
+    // Patient actions
+    function viewPatient(patientName) {
+        const patient = patients.find(p => p.name === patientName);
+        if (patient) {
+            showToast(`Viewing details for ${patient.name}`, 'info');
+            // In a real app, this would open a detailed patient view
+        }
+    }
+
+    function editPatient(patientName) {
+        const patient = patients.find(p => p.name === patientName);
+        if (patient) {
+            showToast(`Editing ${patient.name}`, 'info');
+            // In a real app, this would open an edit form
+        }
+    }
+
+    // Refresh data
+    function refreshData() {
+        showToast('Refreshing patient data...', 'info');
+
+        // Simulate data refresh with slight changes
+        setTimeout(() => {
+            patients.forEach(patient => {
+                // Simulate small vitals changes
+                patient.temperature += (Math.random() - 0.5) * 0.5;
+                patient.heartRate += Math.floor((Math.random() - 0.5) * 10);
+                patient.timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+            });
+
+            populateTable();
+            updateStats();
+            showToast('Data refreshed successfully!', 'success');
+        }, 1000);
+    }
+
+    // Update statistics
+    function updateStats() {
+        const critical = patients.filter(p => p.status === 'critical').length;
+        const warning = patients.filter(p => p.status === 'warning').length;
+        const stable = patients.filter(p => p.status === 'stable').length;
+
+        document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = critical;
+        document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = warning;
+        document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = stable;
+        document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = patients.length;
+    }
+
+    // Real-time updates simulation
+    function startRealTimeUpdates() {
+        setInterval(() => {
+            // Simulate random vital changes
+            const randomPatient = patients[Math.floor(Math.random() * patients.length)];
+            randomPatient.temperature += (Math.random() - 0.5) * 0.2;
+            randomPatient.heartRate += Math.floor((Math.random() - 0.5) * 5);
+            randomPatient.timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+            // Update table if no filters are active
+            if (!document.getElementById('searchInput').value &&
+                !document.getElementById('statusFilter').value &&
+                !document.getElementById('roomFilter').value) {
+                populateTable();
+            }
+        }, 30000); // Update every 30 seconds
+    }
+
+    // Utility functions
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffMinutes < 1) return 'Just now';
+        if (diffMinutes < 60) return `${diffMinutes} min ago`;
+        if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)} hr ago`;
+        return timestamp;
+    }
+
+    function showToast(message, type = 'info') {
+        const colors = {
+            success: 'var(--success-color)',
+            error: 'var(--danger-color)',
+            warning: 'var(--warning-color)',
+            info: 'var(--primary-color)'
+        };
+
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${colors[type]};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: var(--shadow);
+                z-index: 3000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 300px;
+            `;
+        toast.textContent = message;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Mobile sidebar toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('open');
+    }
+
+    // Add mobile menu button for smaller screens
+    if (window.innerWidth <= 1024) {
+        const mobileMenuBtn = document.createElement('button');
+        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        mobileMenuBtn.className = 'action-btn';
+        mobileMenuBtn.onclick = toggleSidebar;
+        document.querySelector('.user-actions').prepend(mobileMenuBtn);
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 1024) {
+            document.getElementById('sidebar').classList.remove('open');
+        }
+    });
+
+    // Add CSS animations for toast
+    const style = document.createElement('style');
+    style.textContent = `
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+        `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>
